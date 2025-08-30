@@ -1,9 +1,13 @@
 import sys
-import pandas as pd
+
 import matplotlib.pyplot as plt
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,QWidget, QGridLayout, QStackedLayout, QFileDialog)
+import pandas as pd
+from matplotlib.backends.backend_qt5agg import \
+    FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtCore import Qt, QTimer
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5.QtWidgets import (QApplication, QFileDialog, QGridLayout,
+                             QHBoxLayout, QLabel, QMainWindow, QPushButton,
+                             QStackedLayout, QVBoxLayout, QWidget)
 
 
 class ExpandableGraph(QWidget):
