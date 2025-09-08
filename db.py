@@ -4,7 +4,7 @@ from datetime import datetime
 
 class BaseDatos:
     # Función para inicializar la base de datos
-    def __init__(self, nombre_archivo="datos_prueba_durabilidad.db"):
+    def __init__(self, nombre_archivo="banco pruebas v1.db"):
         self.conn = sqlite3.connect(nombre_archivo)
         self.cursor = self.conn.cursor()
         self.crear_tabla()
@@ -15,15 +15,8 @@ class BaseDatos:
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS dato (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                temperatura REAL,
-                presion REAL,
-                altitud REAL,
-                aceleracion_x REAL,
-                aceleracion_y REAL,
-                aceleracion_z REAL,
-                giroscopio_x REAL,
-                giroscopio_y REAL,
-                giroscopio_z REAL,
+                masa REAL,
+                empuje REAL,
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         ''')
@@ -35,22 +28,10 @@ class BaseDatos:
         try:
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Hora local
             self.cursor.execute('''
-                INSERT INTO dato (
-                    temperatura, presion, altitud,
-                    aceleracion_x, aceleracion_y, aceleracion_z,
-                    giroscopio_x, giroscopio_y, giroscopio_z,
-                    timestamp
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO dato (masa, empuje, timestamp) VALUES (?, ?, ?)
             ''', (
-                datos.get('t'),
-                datos.get('p'),
-                datos.get('a'),
-                datos.get('ax'),
-                datos.get('ay'),
-                datos.get('az'),
-                datos.get('gx'),
-                datos.get('gy'),
-                datos.get('gz'),
+                datos.get('masa'),
+                datos.get('empuje'),
                 timestamp
             ))
             self.conn.commit()

@@ -18,41 +18,20 @@ class LectorSerial:
         # Lo ideal es que el archivo apunte hacia la carpeta MisionJinne pero puede ser cualquier otra parte
         #with open('C:/Users/eveli/Documents/datos_3.csv', 'a', encoding='utf-8') as archivo:
         #    archivo.write(linea + '\n')
-        if not linea:
-            return
-        partes = linea.split(',')
+        partes = linea.split()  # Separa por espacios/tab
+        datos = {'masa': None, 'empuje': None}
 
-        datos = {
-            't': None, 'p': None, 'a': None,
-            'ax': None, 'ay': None, 'az': None,
-            'gx': None, 'gy': None, 'gz': None, 'e': None,
-        }
-
-        for parte in partes:
-            try:
-                if parte.startswith("t"):
-                    datos['t'] = float(parte[1:])
-                elif parte.startswith("p"):
-                    datos['p'] = float(parte[1:])
-                elif parte.startswith("a") and not parte.startswith(("ax", "ay", "az")):
-                    datos['a'] = float(parte[1:])
-                elif parte.startswith("ax"):
-                    datos['ax'] = float(parte[2:])
-                elif parte.startswith("ay"):
-                    datos['ay'] = float(parte[2:])
-                elif parte.startswith("az"):
-                    datos['az'] = float(parte[2:])
-                elif parte.startswith("gx"):
-                    datos['gx'] = float(parte[2:])
-                elif parte.startswith("gy"):
-                    datos['gy'] = float(parte[2:])
-                elif parte.startswith("gz"):
-                    datos['gz'] = float(parte[2:])
-                elif parte.startswith("e"):
-                    datos['e'] = int(parte[1:])
-            except ValueError:
-                # Si hay un dato corrupto, lo ignoramos
-                continue
+        for i, parte in enumerate(partes):
+            if parte.startswith("Masa:"):
+               try:
+                    datos['masa'] = float(partes[i+1])  # El siguiente elemento es el valor
+               except ValueError:
+                   continue
+            elif parte.startswith("Empuje:"):
+                try:
+                    datos['empuje'] = float(partes[i+1])
+                except ValueError:
+                    continue
         self.buffer_datos.append(datos)
 
 #Linea leída: ax0.01,ay0.04,az-0.99,gx-4.33,gy1.59,gz0.67,t31.05,p1010.63,a1.38
@@ -63,3 +42,4 @@ class LectorSerial:
 #Linea leída: ax0.01,ay0.03,az-1.00,gx-4.15,gy1.16,gz0.49,t31.04,p1010.66,a1.10
 #Linea leída: ax0.01,ay0.04,az-1.00,gx-3.91,gy1.40,gz0.67,t31.04,p1010.62,a1.43
 #Linea leída: ax0.00,ay0.03,az-1.00,gx-4.46,gy1.40,gz0.67,t31.05,p1010.62,a1.42
+

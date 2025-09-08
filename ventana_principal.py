@@ -61,7 +61,7 @@ class VentanaPrincipal(QMainWindow):
         self.pausado = False
         self.data = pd.DataFrame()
 
-        self.setWindowTitle("Monitoreo - Estación Terrena")
+        self.setWindowTitle("Monitoreo - Banco de pruebas")
         self.showMaximized()
 
         self.pila = QStackedLayout()
@@ -77,11 +77,10 @@ class VentanaPrincipal(QMainWindow):
         layout_izquierdo.setSpacing(15)
         layout_izquierdo.setAlignment(Qt.AlignTop)
 
-        #self.label_tiempo = self.crear_etiqueta_sensor("TIEMPO", "0 seg")
-        self.label_temperatura = self.crear_etiqueta_sensor("TEMPERATURA", "0 °C")
-        self.label_presion = self.crear_etiqueta_sensor("PRESIÓN", "0 hPa")
-        self.label_altitud = self.crear_etiqueta_sensor("ALTITUD", "0 m")
 
+        self.label_masa = self.crear_etiqueta_sensor("MASA", "0 g\t")
+        self.label_empuje = self.crear_etiqueta_sensor("EMPUJE", "0 N")
+        
         self.boton_pausar = QPushButton("PAUSAR")
         self.boton_pausar.setCheckable(True)
         self.boton_pausar.clicked.connect(self.alternar_pausa)
@@ -91,54 +90,50 @@ class VentanaPrincipal(QMainWindow):
         self.boton_reiniciar.setStyleSheet("background-color: #A6FF47; font-size: 16px; padding: 10px;")
         self.boton_reiniciar.clicked.connect(self.reiniciar)
 
-        # layout_izquierdo.addWidget(self.label_tiempo)
-        layout_izquierdo.addWidget(self.label_temperatura)
-        layout_izquierdo.addWidget(self.label_presion)
-        layout_izquierdo.addWidget(self.label_altitud)
+        #layout_izquierdo.addWidget(self.label_tiempo)
+        layout_izquierdo.addWidget(self.label_masa)
+        layout_izquierdo.addWidget(self.label_empuje)
+        #layout_izquierdo.addWidget(self.label_altitud)
         layout_izquierdo.addWidget(self.boton_pausar)
         layout_izquierdo.addWidget(self.boton_reiniciar)
 
+       
         # Checklist para el estado 
-        self.estado_diccionario= {
-            433: "LoRa inicio correctamente",
-            434: "Error al iniciar el LoRa",
-            280: "Bmp inicio correctamente",
-            281: "Error al iniciar el bmp",
-            100: "Todo el sistema inicio correctamente",
-            200: "Sistema activado por altitud",
-            300: "Activación por descenso",
-            400: "Activación por cambio en la aceleración"
-        }
+        
+        #self.estado_diccionario= {
+        #    433: "LoRa inicio correctamente",
+        #    434: "Error al iniciar el LoRa",
+        #    280: "Bmp inicio correctamente",
+        #    281: "Error al iniciar el bmp",
+        #    100: "Todo el sistema inicio correctamente",
+        #    200: "Sistema activado por altitud",
+        #    300: "Activación por descenso",
+        #    400: "Activación por cambio en la aceleración"
+        #}
 
-        self.checkboxes_estado = {}
-        group_estado = QGroupBox("Estado del sistema")
-        group_estado.setStyleSheet("QGroupBox { color: #A6FF47; font-size: 16px; font-weight: bold; border: 2px solid #A6FF47; margin-top: 10px; } QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top center; padding: 0 3px; }")
-        vbox_estado = QVBoxLayout()
-        for code, desc in self.estado_diccionario.items():
-            cb = QCheckBox(desc)
-            cb.setEnabled(False)
-            cb.setStyleSheet("color: white; font-size: 14px;")
-            vbox_estado.addWidget(cb)
-            self.checkboxes_estado[code] = cb
-        group_estado.setLayout(vbox_estado)
-        layout_izquierdo.addWidget(group_estado)
+        #self.checkboxes_estado = {}
+        #group_estado = QGroupBox("Estado del sistema")
+        #group_estado.setStyleSheet("QGroupBox { color: #A6FF47; font-size: 16px; font-weight: bold; border: 2px solid #A6FF47; margin-top: 10px; } QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top center; padding: 0 3px; }")
+        #vbox_estado = QVBoxLayout()
+        #for code, desc in self.estado_diccionario.items():
+        #    cb = QCheckBox(desc)
+        #    cb.setEnabled(False)
+        #    cb.setStyleSheet("color: white; font-size: 14px;")
+        #    vbox_estado.addWidget(cb)
+        #    self.checkboxes_estado[code] = cb
+        #group_estado.setLayout(vbox_estado)
+        #layout_izquierdo.addWidget(group_estado)
 
     
         layout_derecho = QGridLayout()
         self.graficas = {}
 
         self.mapeo_columnas = {
-            "Aceleración X": "ax",
-            "Aceleración Y": "ay",
-            "Aceleración Z": "az",
-            "Giroscopio X": "gx",
-            "Giroscopio Y": "gy",
-            "Giroscopio Z": "gz",
-            "Temperatura": "t",
-            "Altitud": "a"
+            "Masa": "masa",
+            "Empuje ": "empuje"
         }
 
-        fila_col = [(0,0),(0,1),(1,0),(1,1),(2,0),(2,1),(3,0),(3,1)]
+        fila_col = [(0,0),(0,1)]
         for (titulo, columna), (fila, col) in zip(self.mapeo_columnas.items(), fila_col):
             self.agregar_grafica(layout_derecho, titulo, fila, col)
 
@@ -206,20 +201,20 @@ class VentanaPrincipal(QMainWindow):
 
         fila = self.data.iloc[-1]  # Usar solo el último para mostrar y graficar
 
-        def mostrar_valor(valor, sufijo):
-            if valor is None or pd.isna(valor):
-                return "—"
-            return f"{valor:.2f} {sufijo}"
+        #def mostrar_valor(valor, sufijo):
+        #    if valor is None or pd.isna(valor):
+        #        return "—"
+        #    return f"{valor:.2f} {sufijo}"
 
-        self.label_temperatura.setText(f"TEMPERATURA: {mostrar_valor(fila.get('t'), '°C')}")
-        self.label_presion.setText(f"PRESIÓN: {mostrar_valor(fila.get('p'), 'hPa')}")
-        self.label_altitud.setText(f"ALTITUD: {mostrar_valor(fila.get('a'), 'm')}")
+        #self.label_temperatura.setText(f"TEMPERATURA: {mostrar_valor(fila.get('t'), '°C')}")
+        #self.label_presion.setText(f"PRESIÓN: {mostrar_valor(fila.get('p'), 'hPa')}")
+        #self.label_altitud.setText(f"ALTITUD: {mostrar_valor(fila.get('a'), 'm')}")
 
     # Actualizar checklist de estado
-        e = fila.get('e')
-        for code, cb in self.checkboxes_estado.items():
-            cb.setChecked(bool(code == e))
-
+    #    e = fila.get('e')
+    #    for code, cb in self.checkboxes_estado.items():
+    #        cb.setChecked(bool(code == e))
+    #
         for titulo, columna in self.mapeo_columnas.items():
             self.actualizar_grafica(titulo, columna)
 
