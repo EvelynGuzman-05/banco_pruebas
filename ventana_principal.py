@@ -73,59 +73,11 @@ class VentanaPrincipal(QMainWindow):
         widget_central.setLayout(self.pila)
         self.setCentralWidget(widget_central)
 
-        layout_izquierdo = QVBoxLayout()
-        layout_izquierdo.setSpacing(15)
-        layout_izquierdo.setAlignment(Qt.AlignTop)
-
-
-        self.label_masa = self.crear_etiqueta_sensor("MASA", "0 g\t")
-        self.label_empuje = self.crear_etiqueta_sensor("EMPUJE", "0 N")
+        # Layout principal vertical para organizar todo
+        layout_principal_v = QVBoxLayout()
         
-        self.boton_pausar = QPushButton("PAUSAR")
-        self.boton_pausar.setCheckable(True)
-        self.boton_pausar.clicked.connect(self.alternar_pausa)
-        self.boton_pausar.setStyleSheet("background-color: orange; color: black; font-size: 16px; padding: 10px;")
-
-        self.boton_reiniciar = QPushButton("REINICIAR")
-        self.boton_reiniciar.setStyleSheet("background-color: #A6FF47; font-size: 16px; padding: 10px;")
-        self.boton_reiniciar.clicked.connect(self.reiniciar)
-
-        #layout_izquierdo.addWidget(self.label_tiempo)
-        layout_izquierdo.addWidget(self.label_masa)
-        layout_izquierdo.addWidget(self.label_empuje)
-        #layout_izquierdo.addWidget(self.label_altitud)
-        layout_izquierdo.addWidget(self.boton_pausar)
-        layout_izquierdo.addWidget(self.boton_reiniciar)
-
-       
-        # Checklist para el estado 
-        
-        #self.estado_diccionario= {
-        #    433: "LoRa inicio correctamente",
-        #    434: "Error al iniciar el LoRa",
-        #    280: "Bmp inicio correctamente",
-        #    281: "Error al iniciar el bmp",
-        #    100: "Todo el sistema inicio correctamente",
-        #    200: "Sistema activado por altitud",
-        #    300: "Activación por descenso",
-        #    400: "Activación por cambio en la aceleración"
-        #}
-
-        #self.checkboxes_estado = {}
-        #group_estado = QGroupBox("Estado del sistema")
-        #group_estado.setStyleSheet("QGroupBox { color: #A6FF47; font-size: 16px; font-weight: bold; border: 2px solid #A6FF47; margin-top: 10px; } QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top center; padding: 0 3px; }")
-        #vbox_estado = QVBoxLayout()
-        #for code, desc in self.estado_diccionario.items():
-        #    cb = QCheckBox(desc)
-        #    cb.setEnabled(False)
-        #    cb.setStyleSheet("color: white; font-size: 14px;")
-        #    vbox_estado.addWidget(cb)
-        #    self.checkboxes_estado[code] = cb
-        #group_estado.setLayout(vbox_estado)
-        #layout_izquierdo.addWidget(group_estado)
-
-    
-        layout_derecho = QGridLayout()
+        # Layout para las gráficas
+        layout_graficas = QHBoxLayout()
         self.graficas = {}
 
         self.mapeo_columnas = {
@@ -133,12 +85,39 @@ class VentanaPrincipal(QMainWindow):
             "Empuje ": "empuje"
         }
 
-        fila_col = [(0,0),(0,1)]
-        for (titulo, columna), (fila, col) in zip(self.mapeo_columnas.items(), fila_col):
-            self.agregar_grafica(layout_derecho, titulo, fila, col)
+        # Crear un contenedor para cada gráfica
+        for titulo, columna in self.mapeo_columnas.items():
+            contenedor_grafica = QVBoxLayout()
+            self.agregar_grafica(contenedor_grafica, titulo)
+            layout_graficas.addLayout(contenedor_grafica)
 
-        self.layout_principal.addLayout(layout_izquierdo, 2)
-        self.layout_principal.addLayout(layout_derecho, 5)
+        # Layout para los botones en la parte inferior
+        layout_botones = QHBoxLayout()
+        layout_botones.setSpacing(15)
+        
+        self.boton_pausar = QPushButton("PAUSAR")
+        self.boton_pausar.setCheckable(True)
+        self.boton_pausar.clicked.connect(self.alternar_pausa)
+        self.boton_pausar.setStyleSheet("background-color: orange; color: black; font-size: 16px; padding: 10px;")
+        self.boton_pausar.setFixedWidth(200)
+
+        self.boton_reiniciar = QPushButton("REINICIAR")
+        self.boton_reiniciar.setStyleSheet("background-color: #A6FF47; font-size: 16px; padding: 10px;")
+        self.boton_reiniciar.clicked.connect(self.reiniciar)
+        self.boton_reiniciar.setFixedWidth(200)
+
+        # Centrar los botones
+        layout_botones.addStretch()
+        layout_botones.addWidget(self.boton_pausar)
+        layout_botones.addWidget(self.boton_reiniciar)
+        layout_botones.addStretch()
+
+        # Agregar los layouts al layout principal vertical
+        layout_principal_v.addLayout(layout_graficas)
+        layout_principal_v.addLayout(layout_botones)
+        
+        # layout principal
+        self.layout_principal.addLayout(layout_principal_v)
 
         self.setStyleSheet("background-color: #3d3d3d; color: white;")
 
@@ -148,20 +127,20 @@ class VentanaPrincipal(QMainWindow):
    
    
     #Función para crear etiquetas de sensores
-    def crear_etiqueta_sensor(self, nombre, valor):
-        label = QLabel(f"{nombre}: {valor}")
-        label.setAlignment(Qt.AlignCenter)
-        label.setStyleSheet("color: #A6FF47; background-color: #2E2E2E; font-size: 18px; font-weight: bold; padding: 10px; border: 2px solid white;")
-        return label
+    #def crear_etiqueta_sensor(self, nombre, valor):
+    #    label = QLabel(f"{nombre}: {valor}")
+    #    label.setAlignment(Qt.AlignCenter)
+    #    label.setStyleSheet("color: #A6FF47; background-color: #2E2E2E; font-size: 18px; font-weight: bold; padding: 10px; border: 2px solid white;")
+    #    return label
     
     
     #Función para agregar gráficas al layout
-    def agregar_grafica(self, layout, titulo, fila, columna):
+    def agregar_grafica(self, layout, titulo):
         etiqueta_titulo = QLabel(titulo)
         etiqueta_titulo.setAlignment(Qt.AlignCenter)
         etiqueta_titulo.setStyleSheet("color: white; font-size: 16px; font-weight: bold;")
 
-        figura = plt.figure(figsize=(4.5, 3.5), facecolor="#3d3d3d")
+        figura = plt.figure(figsize=(6, 4), facecolor="#3d3d3d")
         ax = figura.add_subplot(111)  # Crear el eje aquí, solo una vez
 
         canvas = FigureCanvas(figura)
@@ -171,9 +150,9 @@ class VentanaPrincipal(QMainWindow):
         etiqueta_valor.setAlignment(Qt.AlignCenter)
         etiqueta_valor.setStyleSheet("color: #A6FF47; font-size: 14px;")
 
-        layout.addWidget(etiqueta_titulo, fila * 3, columna)
-        layout.addWidget(canvas, fila * 3 + 1, columna)
-        layout.addWidget(etiqueta_valor, fila * 3 + 2, columna)
+        layout.addWidget(etiqueta_titulo)
+        layout.addWidget(canvas)
+        layout.addWidget(etiqueta_valor)
 
         self.graficas[titulo] = {
             "figura": figura,

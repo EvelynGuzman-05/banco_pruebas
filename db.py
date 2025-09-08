@@ -4,7 +4,7 @@ from datetime import datetime
 
 class BaseDatos:
     # Función para inicializar la base de datos
-    def __init__(self, nombre_archivo="banco pruebas v1.db"):
+    def __init__(self, nombre_archivo="banco pruebas v4.db"):
         self.conn = sqlite3.connect(nombre_archivo)
         self.cursor = self.conn.cursor()
         self.crear_tabla()
