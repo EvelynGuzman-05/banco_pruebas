@@ -1,3 +1,5 @@
+
+# Importación de librerías
 import sys
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -7,8 +9,11 @@ from PyQt5.QtCore import Qt, QTimer
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from db import BaseDatos
 from lector_serial import LectorSerial
+from datetime import datetime
 
-
+# NOTA:Constructor --> Es un método especial de una clase que se llama automáticamente cuando creas un objeto de esa clase
+# Cada clase que necesita atributos para funcionar correctamente suele tener un constructor (__init__).
+# Cuando creas una instancia de esa clase, el constructor se ejecuta automáticamente y todos los atributos necesarios se inicializan.
 
 class GraficaExpandible(QWidget):
     def __init__(self, titulo, obtener_datos_callback, regresar_callback):
@@ -53,7 +58,7 @@ class VentanaPrincipal(QMainWindow):
     #Función para inicializar la ventana principal
     def __init__(self, lector_serial):
         super().__init__()
-        self.db = BaseDatos()
+        self.db = BaseDatos()  # Aquí, self.db es una variable que pertenece a esta instancia
         self.ultimo_guardado = 0
         self.lector_serial = lector_serial
         self.indice_actual = 0
@@ -64,8 +69,8 @@ class VentanaPrincipal(QMainWindow):
         self.setWindowTitle("Monitoreo - Banco de pruebas")
         self.showMaximized()
 
-        self.pila = QStackedLayout()
-        self.widget_principal = QWidget()
+        self.pila = QStackedLayout()  # Se usa para poder cambiar entre la vista principal y la vista expandida de las gráficas
+        self.widget_principal = QWidget() 
         self.layout_principal = QHBoxLayout(self.widget_principal)
         self.pila.addWidget(self.widget_principal)
 
@@ -101,15 +106,15 @@ class VentanaPrincipal(QMainWindow):
         self.boton_pausar.setStyleSheet("background-color: orange; color: black; font-size: 16px; padding: 10px;")
         self.boton_pausar.setFixedWidth(200)
 
-        self.boton_reiniciar = QPushButton("REINICIAR")
-        self.boton_reiniciar.setStyleSheet("background-color: #A6FF47; font-size: 16px; padding: 10px;")
-        self.boton_reiniciar.clicked.connect(self.reiniciar)
-        self.boton_reiniciar.setFixedWidth(200)
+        self.boton_limpiar = QPushButton("LIMPIAR")
+        self.boton_limpiar.setStyleSheet("background-color: #A6FF47; font-size: 16px; padding: 10px;")
+        self.boton_limpiar.clicked.connect(self.limpiar)
+        self.boton_limpiar.setFixedWidth(200)
 
         # Centrar los botones
         layout_botones.addStretch()
         layout_botones.addWidget(self.boton_pausar)
-        layout_botones.addWidget(self.boton_reiniciar)
+        layout_botones.addWidget(self.boton_limpiar)
         layout_botones.addStretch()
 
         # Agregar los layouts al layout principal vertical
@@ -125,14 +130,8 @@ class VentanaPrincipal(QMainWindow):
         self.timer.timeout.connect(self.actualizar_datos)
         self.timer.start(100)
    
-   
-    #Función para crear etiquetas de sensores
-    #def crear_etiqueta_sensor(self, nombre, valor):
-    #    label = QLabel(f"{nombre}: {valor}")
-    #    label.setAlignment(Qt.AlignCenter)
-    #    label.setStyleSheet("color: #A6FF47; background-color: #2E2E2E; font-size: 18px; font-weight: bold; padding: 10px; border: 2px solid white;")
-    #    return label
-    
+        
+  
     
     #Función para agregar gráficas al layout
     def agregar_grafica(self, layout, titulo):
@@ -144,7 +143,7 @@ class VentanaPrincipal(QMainWindow):
         ax = figura.add_subplot(111)  # Crear el eje aquí, solo una vez
 
         canvas = FigureCanvas(figura)
-        canvas.mousePressEvent = lambda event, t=titulo: self.expandir_grafica(t)
+        canvas.mousePressEvent = lambda event, t=titulo: self.expandir_grafica(t) # Callback al hacer click en la gráficas
 
         etiqueta_valor = QLabel("—")
         etiqueta_valor.setAlignment(Qt.AlignCenter)
@@ -164,61 +163,40 @@ class VentanaPrincipal(QMainWindow):
    
    
     def actualizar_datos(self):
-        if self.pausado or not self.lector_serial.buffer_datos:
+        if self.pausado:
             return
+        
+         # Leer y procesar un solo dato
+        dato = self.lector_serial.leer_dato()
+        if dato['masa'] is not None and dato['empuje'] is not None:
+        # Guardar directamente en la base de datos
+            dato['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            self.db.insertar_dato(dato)
+        # Actualizar cada gráfica con su valor correspondiente
+            for titulo, columna in self.mapeo_columnas.items():
+                self.actualizar_grafica(titulo, dato[columna])
 
-        self.data = pd.DataFrame(self.lector_serial.buffer_datos)
-
-        if self.data.empty:
-            return
-
-    #  Guardar todos los datos nuevos en la base 
-        nuevos_datos = self.lector_serial.buffer_datos[self.ultimo_guardado:]
-        for fila in nuevos_datos:
-            self.db.insertar_dato(fila)
-        self.ultimo_guardado += len(nuevos_datos)
-
-        fila = self.data.iloc[-1]  # Usar solo el último para mostrar y graficar
-
-        #def mostrar_valor(valor, sufijo):
-        #    if valor is None or pd.isna(valor):
-        #        return "—"
-        #    return f"{valor:.2f} {sufijo}"
-
-        #self.label_temperatura.setText(f"TEMPERATURA: {mostrar_valor(fila.get('t'), '°C')}")
-        #self.label_presion.setText(f"PRESIÓN: {mostrar_valor(fila.get('p'), 'hPa')}")
-        #self.label_altitud.setText(f"ALTITUD: {mostrar_valor(fila.get('a'), 'm')}")
-
-    # Actualizar checklist de estado
-    #    e = fila.get('e')
-    #    for code, cb in self.checkboxes_estado.items():
-    #        cb.setChecked(bool(code == e))
-    #
-        for titulo, columna in self.mapeo_columnas.items():
-            self.actualizar_grafica(titulo, columna)
-
-        if self.grafica_expandida:
-            self.grafica_expandida.actualizar()
+                
 
    
-   
-    def actualizar_grafica(self, titulo, columna):
-        if self.data.empty:
-            return
+    def actualizar_grafica(self, titulo, valor):
 
         grafica = self.graficas[titulo]
         ax = grafica["ax"]
         canvas = grafica["canvas"]
         etiqueta_valor = grafica["label"]
 
-        x = self.data.index[-100:]
-        y = self.data[columna].iloc[-100:]
 
-        if x.empty or y.empty:
-            return
-
-        ax.clear()  # Limpiar solo el eje, no toda la figura
-        ax.plot(x, y, color='white')
+         # Inicializar el historial si no existe
+        if not hasattr(self, 'datos_grafica'):
+            self.datos_grafica = {titulo: [] for titulo in self.mapeo_columnas.keys()}
+    
+        # Agregar el nuevo valor al historial (sin límite: anteiormente había un límite de 100)
+        self.datos_grafica[titulo].append(valor)
+    
+        # Graficar todo el historial
+        ax.clear()
+        ax.plot(self.datos_grafica[titulo], color='white')
         ax.set_facecolor("#3d3d3d")
         ax.tick_params(axis='x', colors='white', rotation=45)
         ax.tick_params(axis='y', colors='white')
@@ -227,10 +205,9 @@ class VentanaPrincipal(QMainWindow):
         ax.figure.tight_layout()
         canvas.draw()
 
-        valor = y.iloc[-1]
-        etiqueta_valor.setText("—" if pd.isna(valor) else f"{valor:.2f}")
+        # Actualizar el valor actual
+        etiqueta_valor.setText(f"{valor:.2f}")
 
-   
    
     #Función para expandir la gráfica de un sensor
     # y mostrarla en una vista expandida
@@ -238,9 +215,10 @@ class VentanaPrincipal(QMainWindow):
         columna = self.mapeo_columnas[titulo]
 
         def obtener_datos():
+            # Retornar todos los datos para la vista expandida
             return self.data.index, self.data[columna]
 
-        self.grafica_expandida = GraficaExpandible(titulo, obtener_datos, self.restaurar_vista_principal)
+        self.grafica_expandida = GraficaExpandible(titulo, obtener_datos, self.restaurar_vista_principal) #Se crea una instancia de GraficaExpandible (grafica_expandida) y se pasan los parametros correspondientes (titulo -> titulo, obtener_datos -> obtener_datos_calback, restaurar_vista_principal -> regresar_callback)
         self.pila.addWidget(self.grafica_expandida)
         self.pila.setCurrentWidget(self.grafica_expandida)
     
@@ -263,20 +241,28 @@ class VentanaPrincipal(QMainWindow):
     
     #Función para reiniciar el buffer de datos
     # y el índice actual
-    def reiniciar(self):
-        self.lector_serial.buffer_datos.clear()
+    def limpiar(self):
+        if hasattr(self, 'datos_grafica'):  # hasattr se usa para verificar si un objeto(en este caso ventana-principal) tiene un atributo específico (datos_grafica)
+            for titulo in self.mapeo_columnas.keys():
+                self.datos_grafica[titulo] = []  # Limpia los datos de cada gráfica
+            # Redibujar las gráficas vacías
+                grafica = self.graficas[titulo] # Accede al diccionario que guarda la info de la gráfica
+                ax = grafica["ax"]
+                ax.clear()
+                ax.set_facecolor("#3d3d3d")
+                grafica["canvas"].draw()
+                grafica["label"].setText("—")
         self.indice_actual = 0
  
 if __name__ == "__main__":
-    lector = LectorSerial("COM7", 9600)
-
+    lector = LectorSerial("COM6", 9600)
 
     app = QApplication(sys.argv)
     ventana = VentanaPrincipal(lector)
 
     timer_lectura = QTimer()
     timer_lectura.timeout.connect(lector.leer_dato)
-    timer_lectura.start(100)
+    timer_lectura.start(200)
 
     ventana.show()
     sys.exit(app.exec_())

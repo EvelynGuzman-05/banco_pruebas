@@ -4,35 +4,25 @@ from datetime import datetime
 
 class LectorSerial:
     #Función para inicializar el lector serial
-    def __init__(self, puerto, baudios, buffer_datos = []):
+    def __init__(self, puerto, baudios):
         self.puerto = serial.Serial(puerto, baudios, timeout=1)
-        self.buffer_datos = buffer_datos
-
+       
 
     #Función para leer datos del puerto serial
-    def leer_dato(self):
-        linea = self.puerto.readline().decode('utf-8', errors='ignore').strip()
-        # print(f"{linea}")  # Debugging line
-        # Cambiar ruta del archivo aqui!!!
-        # Ejemplo: archivo = open(f'C:/Users/carlo/Documents/python/MisionJinne/datos_{archivo_nombre}.csv', 'a')
-        # Lo ideal es que el archivo apunte hacia la carpeta MisionJinne pero puede ser cualquier otra parte
-        #with open('C:/Users/eveli/Documents/datos_3.csv', 'a', encoding='utf-8') as archivo:
-        #    archivo.write(linea + '\n')
-        partes = linea.split()  # Separa por espacios/tab
-        datos = {'masa': None, 'empuje': None}
+    def leer_dato(self): 
+        linea = self.puerto.readline().decode('utf-8', errors='ignore').strip() 
+        #print("Linea leída:", linea)  
+        partes = linea.split() 
+        #print("Partes:", partes)  
+        datos = { 
+            'masa': float(partes[0]), 
+            'empuje': float(partes[1])
+            } 
+        #print(partes[0])
+        #print(partes[1])
+        return datos
 
-        for i, parte in enumerate(partes):
-            if parte.startswith("Masa:"):
-               try:
-                    datos['masa'] = float(partes[i+1])  # El siguiente elemento es el valor
-               except ValueError:
-                   continue
-            elif parte.startswith("Empuje:"):
-                try:
-                    datos['empuje'] = float(partes[i+1])
-                except ValueError:
-                    continue
-        self.buffer_datos.append(datos)
+        
 
 #Linea leída: ax0.01,ay0.04,az-0.99,gx-4.33,gy1.59,gz0.67,t31.05,p1010.63,a1.38
 #Linea leída: ax0.01,ay0.03,az-1.00,gx-4.21,gy1.46,gz0.61,t31.06,p1010.67,a1.06
