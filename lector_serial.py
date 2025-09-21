@@ -5,21 +5,45 @@ from datetime import datetime
 class LectorSerial:
     #Función para inicializar el lector serial
     def __init__(self, puerto, baudios):
-        self.puerto = serial.Serial(puerto, baudios, timeout=1)
+        try:
+            self.puerto = serial.Serial(puerto, baudios, timeout=1)
+        except serial.SerialException as e:
+            self.puerto = None
        
 
     #Función para leer datos del puerto serial
     def leer_dato(self): 
-        linea = self.puerto.readline().decode('utf-8', errors='ignore').strip() 
+        if self.puerto is not None:
+            try:
+                linea = self.puerto.readline().decode('utf-8', errors='ignore').strip() 
+            except Exception as e:
+                print(e)
+                return {
+                "masa": None,
+                "empuje":None
+            }
+        else:
+            return {
+                "masa": None,
+                "empuje":None
+            }
+
         #print("Linea leída:", linea)  
-        partes = linea.split() 
-        #print("Partes:", partes)  
-        datos = { 
-            'masa': float(partes[0]), 
-            'empuje': float(partes[1])
+        partes = linea.split(",") 
+
+        
+
+        if len(partes) == 2 :
+            datos = { 
+                'masa': float(partes[0]), 
+                'empuje': float(partes[1])
             } 
-        #print(partes[0])
-        #print(partes[1])
+        else:
+            datos = {
+                "masa": None,
+                "empuje":None
+            }
+
         return datos
 
         

@@ -168,6 +168,7 @@ class VentanaPrincipal(QMainWindow):
         
          # Leer y procesar un solo dato
         dato = self.lector_serial.leer_dato()
+
         if dato['masa'] is not None and dato['empuje'] is not None:
         # Guardar directamente en la base de datos
             dato['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -175,6 +176,8 @@ class VentanaPrincipal(QMainWindow):
         # Actualizar cada gráfica con su valor correspondiente
             for titulo, columna in self.mapeo_columnas.items():
                 self.actualizar_grafica(titulo, dato[columna])
+        else:
+            return
 
                 
 
