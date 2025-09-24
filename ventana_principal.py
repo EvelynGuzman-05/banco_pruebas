@@ -18,9 +18,7 @@ from datetime import datetime
 class GraficaExpandible(QWidget):
     def __init__(self, titulo, obtener_datos_callback, regresar_callback):
         super().__init__()
-        
         self.obtener_datos = obtener_datos_callback
-
         layout = QVBoxLayout()
         self.setLayout(layout)
 
@@ -41,7 +39,7 @@ class GraficaExpandible(QWidget):
 
     def actualizar(self):
         x, y = self.obtener_datos()
-        if x.empty or y.empty:
+        if len(x) == 0 or len(y) == 0:
             return
         self.figura.clear()
         ax = self.figura.add_subplot(111)
@@ -59,12 +57,10 @@ class VentanaPrincipal(QMainWindow):
     def __init__(self, lector_serial):
         super().__init__()
         self.db = BaseDatos()  # Aquí, self.db es una variable que pertenece a esta instancia
-        self.ultimo_guardado = 0
         self.lector_serial = lector_serial
-        self.indice_actual = 0
         self.grafica_expandida = None
         self.pausado = False
-        self.data = pd.DataFrame()
+        
 
         self.setWindowTitle("Monitoreo - Banco de pruebas")
         self.showMaximized()
@@ -87,8 +83,10 @@ class VentanaPrincipal(QMainWindow):
 
         self.mapeo_columnas = {
             "Masa": "masa",
-            "Empuje ": "empuje"
+            "Empuje": "empuje"
         }
+       
+
 
         # Crear un contenedor para cada gráfica
         for titulo, columna in self.mapeo_columnas.items():
@@ -178,6 +176,9 @@ class VentanaPrincipal(QMainWindow):
                 self.actualizar_grafica(titulo, dato[columna])
         else:
             return
+        
+        if self.grafica_expandida is not None:
+            self.grafica_expandida.actualizar()
 
                 
 
@@ -218,8 +219,10 @@ class VentanaPrincipal(QMainWindow):
         columna = self.mapeo_columnas[titulo]
 
         def obtener_datos():
-            # Retornar todos los datos para la vista expandida
-            return self.data.index, self.data[columna]
+            y = self.datos_grafica[titulo] # Obtener todos los datos de la gráfica seleccionada del diccionario (datos_grafica --> key = titulo)
+            x = list(range(len(y))) # Eje x de las graficas
+            # Retorna ambos ejes de la gráfica
+            return x, y
 
         self.grafica_expandida = GraficaExpandible(titulo, obtener_datos, self.restaurar_vista_principal) #Se crea una instancia de GraficaExpandible (grafica_expandida) y se pasan los parametros correspondientes (titulo -> titulo, obtener_datos -> obtener_datos_calback, restaurar_vista_principal -> regresar_callback)
         self.pila.addWidget(self.grafica_expandida)
@@ -255,17 +258,13 @@ class VentanaPrincipal(QMainWindow):
                 ax.set_facecolor("#3d3d3d")
                 grafica["canvas"].draw()
                 grafica["label"].setText("—")
-        self.indice_actual = 0
+        
  
 if __name__ == "__main__":
     lector = LectorSerial("COM6", 9600)
 
     app = QApplication(sys.argv)
     ventana = VentanaPrincipal(lector)
-
-    timer_lectura = QTimer()
-    timer_lectura.timeout.connect(lector.leer_dato)
-    timer_lectura.start(200)
 
     ventana.show()
     sys.exit(app.exec_())
