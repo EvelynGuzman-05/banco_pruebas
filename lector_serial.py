@@ -45,6 +45,16 @@ class LectorSerial:
             }
 
         return datos
+    
+    def enviarPuerto(self, datos):
+        if self.puerto and self.puerto.is_open:
+            self.puerto.enviarPuerto(datos)
+            #print(f"Se envió: {datos}")
+        else:
+            print("Puerto serial no está abierto.")
+
+        
+        
 
         
 

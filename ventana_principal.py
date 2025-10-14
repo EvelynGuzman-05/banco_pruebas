@@ -4,7 +4,7 @@ import sys
 import pandas as pd
 import matplotlib.pyplot as plt
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout,
-                             QHBoxLayout, QWidget, QGridLayout, QStackedLayout, QCheckBox, QGroupBox)
+                             QHBoxLayout, QWidget, QStackedLayout)
 from PyQt5.QtCore import Qt, QTimer
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from db import BaseDatos
@@ -105,14 +105,28 @@ class VentanaPrincipal(QMainWindow):
         self.boton_pausar.setFixedWidth(200)
 
         self.boton_limpiar = QPushButton("LIMPIAR")
-        self.boton_limpiar.setStyleSheet("background-color: #A6FF47; font-size: 16px; padding: 10px;")
+        self.boton_limpiar.setStyleSheet("background-color: #A6FF47;color:black; font-size: 16px; padding: 10px;")
         self.boton_limpiar.clicked.connect(self.limpiar)
         self.boton_limpiar.setFixedWidth(200)
+
+        self.boton_abortar = QPushButton("ABORTAR") #imprimir P
+        self.boton_abortar.setStyleSheet("background-color: red; color: black; font-size: 16px; padding: 10px;")
+        self.boton_abortar.clicked.connect(self.imprimirAbortar)
+        self.boton_abortar.setFixedWidth(200)
+
+        self.boton_inicializar = QPushButton("INICIALIZAR") #imprimir R
+        self.boton_inicializar.setStyleSheet("background-color: #A6FF47;color:black; font-size: 16px; padding: 10px;")
+        self.boton_inicializar.clicked.connect(self.imprimirInicializar)
+        self.boton_inicializar.setFixedWidth(200)
+        
+
 
         # Centrar los botones
         layout_botones.addStretch()
         layout_botones.addWidget(self.boton_pausar)
         layout_botones.addWidget(self.boton_limpiar)
+        layout_botones.addWidget(self.boton_abortar)
+        layout_botones.addWidget(self.boton_inicializar)
         layout_botones.addStretch()
 
         # Agregar los layouts al layout principal vertical
@@ -128,7 +142,7 @@ class VentanaPrincipal(QMainWindow):
         self.timer.timeout.connect(self.actualizar_datos)
         self.timer.start(100)
    
-        
+    
   
     
     #Función para agregar gráficas al layout
@@ -258,6 +272,17 @@ class VentanaPrincipal(QMainWindow):
                 ax.set_facecolor("#3d3d3d")
                 grafica["canvas"].draw()
                 grafica["label"].setText("—")
+            
+                
+    def imprimirAbortar(self):
+        m = "P"
+        self.lector_serial.enviarPuerto(m.encode('utf-8'))
+        
+    def imprimirInicializar(self):
+        m = "R"
+        self.lector_serial.enviarPuerto(m.encode('utf-8'))
+       
+    
         
  
 if __name__ == "__main__":
