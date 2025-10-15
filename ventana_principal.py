@@ -114,7 +114,7 @@ class VentanaPrincipal(QMainWindow):
         self.boton_abortar.clicked.connect(self.imprimirAbortar)
         self.boton_abortar.setFixedWidth(200)
 
-        self.boton_inicializar = QPushButton("INICIALIZAR") #imprimir R
+        self.boton_inicializar = QPushButton("INICIAR") #imprimir R
         self.boton_inicializar.setStyleSheet("background-color: #A6FF47;color:black; font-size: 16px; padding: 10px;")
         self.boton_inicializar.clicked.connect(self.imprimirInicializar)
         self.boton_inicializar.setFixedWidth(200)
