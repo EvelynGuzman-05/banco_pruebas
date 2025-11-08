@@ -1,7 +1,6 @@
 
 # Importación de librerías
 import sys
-import pandas as pd
 import matplotlib.pyplot as plt
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout,
                              QHBoxLayout, QWidget, QStackedLayout)
